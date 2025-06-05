@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{ include "hydra-maester.fullname" . }}-account
-  namespace:  {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "hydra-maester.labels" . | nindent 4 }}
   {{- with .Values.deployment.serviceAccount.annotations }}
@@ -12,20 +12,35 @@ metadata:
   {{- end }}
 {{- if not .Values.singleNamespaceMode }}
 ---
-kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
   name: {{ include "hydra-maester.fullname" . }}-role
 rules:
-  - apiGroups: ["hydra.ory.sh"]
-    resources: ["oauth2clients", "oauth2clients/status"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["list", "watch", "create"]
+ - apiGroups:
+   - hydra.ory.sh
+   resources:
+   - oauth2clients
+   - oauth2clients/status
+   verbs:
+   - get
+   - list
+   - watch
+   - create
+   - update
+   - patch
+   - delete
+ - apiGroups:
+   - ""
+   resources:
+   - secrets
+   verbs:
+   - list
+   - watch
+   - create
 ---
-kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
   name: {{ include "hydra-maester.fullname" . }}-role-binding
 subjects:
@@ -38,21 +53,37 @@ roleRef:
   name: {{ include "hydra-maester.fullname" . }}-role
 {{- end }}
 ---
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
   name: {{ include "hydra-maester.fullname" . }}-role
-  namespace:  {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
 rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "list", "watch", "create"]
-  - apiGroups: ["hydra.ory.sh"]
-    resources: ["oauth2clients", "oauth2clients/status"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+ - apiGroups:
+   - ""
+   resources:
+   - secrets
+   verbs:
+   - get
+   - list
+   - watch
+   - create
+ - apiGroups:
+   - hydra.ory.sh
+   resources:
+   - oauth2clients
+   - oauth2clients/status
+   verbs:
+   - get
+   - list
+   - watch
+   - create
+   - update
+   - patch
+   - delete
 ---
-kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: {{ include "hydra-maester.fullname" . }}-role-binding
   namespace:  {{ .Release.Namespace }}
@@ -69,21 +100,21 @@ roleRef:
 {{- $namespace := .Release.Namespace -}}
 {{- range .Values.enabledNamespaces }}
 ---
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
   name: {{ $name }}-role
-  namespace:  {{ . }}
+  namespace: {{ . }}
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch", "create", "update"]
 ---
-kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: {{ $name }}-role-binding
-  namespace:  {{ . }}
+  namespace: {{ . }}
 subjects:
   - kind: ServiceAccount
     name: {{ $name }}-account # Service account assigned to the controller pod.
